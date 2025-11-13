@@ -4,29 +4,22 @@ import numpy as np
 import gymnasium as gym
 from gymnasium.wrappers import RecordVideo
 import matplotlib.pyplot as plt
-from DQN import DQN  # ✅ import your DQN model
-from discrete_pendulum import make_pendulum  # ✅ import discrete Pendulum version
+from DQN import DQN 
+from discrete_pendulum import make_pendulum
 
-
-# =========================================================
-# Run evaluation, record 5 videos, plot durations, return stats
-# =========================================================
 def test_and_record(agent_type, env_name, model_path, num_episodes=100, record_episodes=[0, 20, 40, 60, 80]):
-    print(f"\n🎯 Testing {agent_type} model on {env_name}")
+    print(f"Testing {agent_type} model on {env_name}")
 
-    # --- Directory structure ---
     video_dir = os.path.join("videos", agent_type.lower(), env_name)
     graph_dir = os.path.join("graphs", agent_type.lower())
     os.makedirs(video_dir, exist_ok=True)
     os.makedirs(graph_dir, exist_ok=True)
 
-    # --- Environment setup ---
     if env_name == "Pendulum-v1":
         env = make_pendulum(num_discrete_actions=5, render_mode="rgb_array")
     else:
         env = gym.make(env_name, render_mode="rgb_array")
 
-    # --- Load trained model ---
     obs_dim = env.observation_space.shape[0]
     act_dim = env.action_space.n
     model = DQN(obs_dim, act_dim)
@@ -35,9 +28,7 @@ def test_and_record(agent_type, env_name, model_path, num_episodes=100, record_e
 
     durations = []
 
-    # --- Run evaluation episodes ---
     for ep in range(num_episodes):
-        # Enable video recording for 5 specific episodes
         if ep in record_episodes:
             rec_env = RecordVideo(
                 env,
@@ -72,11 +63,9 @@ def test_and_record(agent_type, env_name, model_path, num_episodes=100, record_e
 
     env.close()
 
-    # --- Save durations ---
     durations = np.array(durations)
     np.save(os.path.join(graph_dir, f"{env_name}_durations.npy"), durations)
 
-    # --- Plot results ---
     plt.figure(figsize=(8, 4))
     plt.plot(range(1, num_episodes + 1), durations, marker='o', linewidth=1, label="Episode length")
     if len(durations) >= 10:
@@ -92,17 +81,13 @@ def test_and_record(agent_type, env_name, model_path, num_episodes=100, record_e
     plt.close()
 
     avg_len = durations.mean()
-    print(f"✅ Finished {agent_type} on {env_name}")
+    print(f"Finished {agent_type} on {env_name}")
     print(f"Average episode length: {avg_len:.2f} steps")
-    print(f"🎥 Videos saved in: {video_dir}/")
-    print(f"📊 Graph saved as: {graph_dir}/{env_name}_plot.png")
+    print(f"Videos saved in: {video_dir}/")
+    print(f"Graph saved as: {graph_dir}/{env_name}_plot.png")
 
     return avg_len
 
-
-# =========================================================
-# Main execution loop + summary table
-# =========================================================
 if __name__ == "__main__":
     MODELS = {
         "DQNAgent": [
@@ -132,7 +117,6 @@ if __name__ == "__main__":
                 print(f"⚠️ Missing model file: {model_path}")
                 summary[agent_type][env_name] = None
 
-    # --- Print final summary ---
     print("\n==================== SUMMARY TABLE ====================")
     print(f"{'Agent':<12} | {'Environment':<15} | {'Avg Steps'}")
     print("-------------------------------------------------------")
@@ -143,4 +127,4 @@ if __name__ == "__main__":
             else:
                 print(f"{agent_type:<12} | {env_name:<15} | {'MISSING':>9}")
     print("=======================================================\n")
-    print("🎉 All testing completed successfully!")
+    print("All testing completed successfully!")
